@@ -1,0 +1,25 @@
+{
+  "name": "sequence_diagrams",
+  "authors": [
+    "Philip Trauner <philip.trauner@aol.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "homepage": "https://github.com/pigeon9000/sequence_diagrams",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "js-sequence-diagrams": "bramp/js-sequence-diagrams#^2.0.1",
+    "vue": "^2.4.4",
+    "jquery": "^3.2.1",
+    "bootstrap": "bootstrap4#^3.3.7",
+    "axios": "^0.16.2"
+  }
+}

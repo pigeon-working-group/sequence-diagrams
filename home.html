@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Sequence Diagram Playground</title>
+	<script src="static/bower-webfontloader/webfont.js"></script>
+	<script src="static/snap.svg/dist/snap.svg-min.js"></script>
+	<script src="static/underscore/underscore-min.js"></script>
+	<script src="static/js-sequence-diagrams/dist/sequence-diagram-min.js"></script>
+	<script src="static/canvg/dist/canvg.min.js"></script>
+	<script src="static/vue/dist/vue.js"></script>
+	<script src="static/axios/dist/axios.min.js"></script>
+	<script src="static/jquery/dist/jquery.min.js"></script>
+	<script src="static/bootstrap/dist/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="static/bootstrap/dist/css/bootstrap.min.css"></script>
+
+	<style>
+		body {
+			margin: 0 2vw 0 2vw;
+		}
+
+		pre {
+			color: red;
+			display: none;
+		}
+
+		textarea {
+			width: 100%;
+			height: 30vh;
+		}
+
+		input {
+			width: 100%;
+		}
+
+		ul {
+			margin-top: 1.5em;
+		}
+
+	</style>
+</head>
+<body>
+	<div id="app">
+		<div ref="diagramDiv"></div>
+		<pre v-show="diagramValid">{{ errorText }}</pre>
+		<input v-model="diagramName">
+		<textarea v-model="diagramContent"></textarea>
+		<div class="btn-group btn-group-justified">
+			<a class="btn btn-primary" v-bind:disabled="!saveAvaliable()" v-on:click="save">Save</a>
+			<a class="btn btn-primary" v-bind:download="pngDownload" v-bind:href="pngHref" v-on:click="download">Download as PNG</a>
+		</div>
+		
+		<ul class="list-group">
+			<li v-for="(_, key) in diagrams" v-on:click="load(key)" class="list-group-item">
+				{{ key }} <a v-on:click="delete_(key)">x</a>
+			</li>
+		</ul>
+
+		<canvas ref="canvas" v-show="false"></canvas> 
+	
+	</div>
+	<script>
+		var app = new Vue({
+			el: "#app",
+			data: {
+				diagrams: {},
+				diagramName: "Alice greets Bob",
+				diagramContent: "Alice->Bob: Hi!",
+				diagramValid: false,
+				errorText: "",
+				pngDownload: "",
+				pngHref: ""
+			},
+			methods: {
+				download: function() {
+					if (this.$refs.diagramDiv.childNodes.length == 1) {
+						var serializedSVG = new XMLSerializer().serializeToString(this.$refs.diagramDiv.childNodes[0]);
+						canvg(this.$refs.canvas, serializedSVG);
+						this.pngDownload = this.diagramName + ".png";
+						this.pngHref = this.$refs.canvas.toDataURL();
+					}		
+				},
+				render: function() {
+					this.$refs.diagramDiv.innerHTML = "";
+					try {
+						Diagram.parse(this.diagramContent).drawSVG(this.$refs.diagramDiv, {theme: "simple"});
+						this.diagramValid = true;
+					} catch (e) {
+						this.errorTest = e.message;
+						this.diagramCorrent = false;
+					}		
+				},
+				save: function() {
+					var params = new URLSearchParams();
+					params.append("content", this.diagramContent);
+					axios({
+						url: "/diagram/" + this.diagramName,
+						data: params,
+						headers: {"Content-Type": "application/x-www-form-urlencoded"},
+						method: "post"
+					}).then(function (response) {
+						this.$set(this.diagrams, this.diagramName, this.diagramContent);
+					}.bind(this));
+				},
+				delete_: function(key) {
+					axios({
+						url: "/diagram/" + this.diagramName,
+						method: "delete"
+					}).then(function (response) {
+						this.$delete(this.diagrams, this.diagramName);
+					}.bind(this));				
+				},
+				load: function(key) {
+					this.diagramName = key;
+					this.diagramContent = this.diagrams[key];
+				},
+				saveAvaliable: function() {
+					return this.diagramValid && this.diagramName.length > 0;
+				}
+			},
+			watch: {
+				diagramContent: function() {
+					this.render();
+				}
+			},
+			mounted() {
+				axios.get("/diagrams").then(function (response) {
+					this.diagrams = response.data;
+				}.bind(this));
+
+				this.render();
+			}
+		});
+	</script>
+</body>
+</html>
