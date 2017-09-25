@@ -78,7 +78,22 @@
 			methods: {
 				download: function() {
 					if (this.$refs.diagramDiv.childNodes.length == 1) {
-						var serializedSVG = new XMLSerializer().serializeToString(this.$refs.diagramDiv.childNodes[0]);
+						var resizableSVG = this.$refs.diagramDiv.childNodes[0].cloneNode(true);
+						// Improve render quality by resizing svg
+
+						var resizeFactor = 16;
+
+						var newWidth = resizableSVG.width.baseVal.value * resizeFactor;
+						var newHeight = resizableSVG.height.baseVal.value * resizeFactor;
+
+						resizableSVG.viewBox.baseVal.width = newWidth / resizeFactor;
+						resizableSVG.viewBox.baseVal.height = newHeight / resizeFactor;
+
+						resizableSVG.width.baseVal.value = newWidth;
+						resizableSVG.height.baseVal.value = newHeight;
+						console.log(resizableSVG);
+						//resizableSVG.viewBox = "0 0 10 100";
+						var serializedSVG = new XMLSerializer().serializeToString(resizableSVG);
 						canvg(this.$refs.canvas, serializedSVG);
 						this.pngDownload = this.diagramName + ".png";
 						this.pngHref = this.$refs.canvas.toDataURL();
