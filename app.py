@@ -56,12 +56,15 @@ def delete_diagram(name):
 	c = conn.cursor()
 	c.execute("select name from Diagram where name = ?", (name, ))
 
-	if len(c.fetchall()) == 0:
-		successful = False
-	else:
+	if not len(c.fetchall()) == 0:
 		c.execute("delete from Diagram where name = ?", (name, ))
+		print("Delete successful: '%s'" % name)
+	else:
+		print("Delete unsuccessful: '%s' not found" % name)
+		successful = False
 	
 	conn.commit()
+	return HTTPResponse(status=200 if successful else 404)
 
 
 @post("/diagram/<name>")
@@ -73,9 +76,11 @@ def post_diagram(name):
 
 	if len(c.fetchall()) == 0:
 		c.execute("insert into Diagram values (?, ?)", (name, content))
+		print("Saved new diagram: '%s'" % name)
 	else:
 		c.execute("update Diagram set content = ? where name = ?", 
 			(content, name))
+		print("Diagram override: '%s'" % name)
 	conn.commit()
 
 
