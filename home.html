@@ -91,8 +91,6 @@
 
 						resizableSVG.width.baseVal.value = newWidth;
 						resizableSVG.height.baseVal.value = newHeight;
-						console.log(resizableSVG);
-						//resizableSVG.viewBox = "0 0 10 100";
 						var serializedSVG = new XMLSerializer().serializeToString(resizableSVG);
 						canvg(this.$refs.canvas, serializedSVG);
 						this.pngDownload = this.diagramName + ".png";
