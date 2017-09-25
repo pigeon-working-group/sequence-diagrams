@@ -48,7 +48,7 @@
 		<textarea v-model="diagramContent"></textarea>
 		<div class="btn-group btn-group-justified">
 			<a class="btn btn-primary" v-bind:disabled="!saveAvaliable()" v-on:click="save">Save</a>
-			<a class="btn btn-primary" v-bind:download="pngDownload" v-bind:href="pngHref" v-on:click="download">Download as PNG</a>
+			<a class="btn btn-primary" v-bind:disabled="!downloadAvaliable()" v-bind:download="pngDownload" v-bind:href="pngHref" v-on:click="download">Download as PNG</a>
 		</div>
 		
 		<ul class="list-group">
@@ -122,6 +122,9 @@
 				},
 				saveAvaliable: function() {
 					return this.diagramValid && this.diagramName.length > 0;
+				},
+				downloadAvaliable: function() {
+					return this.saveAvaliable();
 				},
 				retrieve: function() {
 					axios.get("/diagrams").then(function (response) {
