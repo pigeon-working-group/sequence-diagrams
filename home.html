@@ -20,7 +20,6 @@
 
 		pre {
 			color: red;
-			display: none;
 		}
 
 		textarea {
@@ -36,12 +35,15 @@
 			margin-top: 1.5em;
 		}
 
+		.control {
+			float: right;
+		}
 	</style>
 </head>
 <body>
 	<div id="app">
 		<div ref="diagramDiv"></div>
-		<pre v-show="diagramValid">{{ errorText }}</pre>
+		<pre v-show="!diagramValid">{{ errorText }}</pre>
 		<input v-model="diagramName">
 		<textarea v-model="diagramContent"></textarea>
 		<div class="btn-group btn-group-justified">
@@ -50,8 +52,11 @@
 		</div>
 		
 		<ul class="list-group">
-			<li v-for="(_, key) in diagrams" v-on:click="load(key)" class="list-group-item">
-				{{ key }} <a v-on:click="delete_(key)">x</a>
+			<li v-for="(_, key) in diagrams"  class="list-group-item">
+				{{ key }} 
+				<div class="control">
+					<a v-on:click="load(key)">Load</a> <a v-on:click="delete_(key)">Delete</a>
+				</div>
 			</li>
 		</ul>
 
@@ -85,8 +90,8 @@
 						Diagram.parse(this.diagramContent).drawSVG(this.$refs.diagramDiv, {theme: "simple"});
 						this.diagramValid = true;
 					} catch (e) {
-						this.errorTest = e.message;
-						this.diagramCorrent = false;
+						this.errorText = e.message;
+						this.diagramValid = false;
 					}		
 				},
 				save: function() {
@@ -103,10 +108,12 @@
 				},
 				delete_: function(key) {
 					axios({
-						url: "/diagram/" + this.diagramName,
+						url: "/diagram/" + key,
 						method: "delete"
 					}).then(function (response) {
-						this.$delete(this.diagrams, this.diagramName);
+						this.$delete(this.diagrams, key);
+					}.bind(this)).catch(function(error) {
+						this.retrieve();
 					}.bind(this));				
 				},
 				load: function(key) {
@@ -115,6 +122,11 @@
 				},
 				saveAvaliable: function() {
 					return this.diagramValid && this.diagramName.length > 0;
+				},
+				retrieve: function() {
+					axios.get("/diagrams").then(function (response) {
+						this.diagrams = response.data;
+					}.bind(this));
 				}
 			},
 			watch: {
@@ -123,10 +135,7 @@
 				}
 			},
 			mounted() {
-				axios.get("/diagrams").then(function (response) {
-					this.diagrams = response.data;
-				}.bind(this));
-
+				this.retrieve();
 				this.render();
 			}
 		});
